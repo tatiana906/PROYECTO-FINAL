@@ -1,105 +1,3 @@
-<!-- <script setup>
-import { useRouter } from "vue-router";
-
-const router = useRouter();
-
-const redireccionarRegister = () => {
-  router.push("/register");
-};
-</script> -->
-
-<!-- <template>
-    <div class="boton">
-        <button @click="redireccionarRegister()">Registrar</button>
-    </div>
-</template> -->
-
-<!-- <template>
-    <div class="contenedor-Padre">
-        <img class="fondo-imagen" src="https://wallpapers.com/images/hd/dark-pictures-vs4od12gttji7s12.jpg" alt="" />
-        <div class="contenido-superior">
-            <div class="titulo-inicio">
-                <h3>Inicio de sesion CSTK</h3>
-            </div>
-            <div class="inputs">
-                <label class="input-label" for="email">Correo electrónico</label>
-                <input type="email" id="email" placeholder="Correo electrónico" v-model="email" @blur="validateEmail" />
-                <span v-if="emailError" class="error">{{ emailError }}</span>
-
-                <label class="input-label" for="password">Contraseña</label>
-                <input type="password" id="password" placeholder="Contraseña" v-model="password"
-                    @blur="validatePassword" />
-                <span v-if="passwordError" class="error">{{ passwordError }}</span>
-
-                <label class="input-label" for="confirm">Confirmar contraseña</label>
-                <input type="password" id="confirm" placeholder="Confirmar contraseña" v-model="confirm"
-                    @blur="validateConfirm" />
-                <span v-if="confirmError" class="error">{{ confirmError }}</span>
-            </div>
-            <div class="botones">
-                <q-btn to="/register" color="primary" label="Registro" unelevated class="btn-registro" style="
-                margin-right: 16px;
-                font-weight: bold;
-                font-size: 16px;
-                padding: 10px 30px "/>
-
-                <q-btn to="/dashboard" color="secondary" label="Login" outline class="btn-login"
-                    style="font-weight: bold; font-size: 16px; padding: 10px 30px "@submit.prevent="handleRegister"/>
-            </div>
-        </div>
-    </div>
-</template>
-
-<script setup>
-import { ref } from "vue";
-
-const email = ref("");
-const password = ref("");
-const confirm = ref("");
-
-const emailError = ref("");
-const passwordError = ref("");
-const confirmError = ref("");
-
-function validateEmail() {
-    if (!email.value) {
-        emailError.value = "El correo es obligatorio";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-        emailError.value = "Correo inválido";
-    } else {
-        emailError.value = "";
-    }
-}
-
-function validatePassword() {
-    if (!password.value) {
-        passwordError.value = "La contraseña es obligatoria";
-    } else if (password.value.length < 6) {
-        passwordError.value = "Mínimo 6 caracteres";
-    } else {
-        passwordError.value = "";
-    }
-}
-
-function validateConfirm() {
-    if (!confirm.value) {
-        confirmError.value = "Confirma tu contraseña";
-    } else if (confirm.value !== password.value) {
-        confirmError.value = "Las contraseñas no coinciden";
-    } else {
-        confirmError.value = "";
-    }
-}
-
-function handleRegister() {
-    validateEmail();
-    validatePassword();
-    validateConfirm();
-    if (!emailError.value && !passwordError.value && !confirmError.value) {
-        alert("Registro válido");
-    }
-}
-</script> -->
 
 <template>
   <div class="contenedor-Padre">
@@ -166,42 +64,22 @@ function handleRegister() {
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useRegistroStore } from '../stores/registro.js';
+import { useAuthStore } from '../stores/auth';
 import DialogAlert from '../components/DialogAlert.vue';
 
 const router = useRouter();
-const registroStore = useRegistroStore();
+const authStore = useAuthStore();
 
 // Campos
-const identifier = ref('');
+const email = ref('');
 const password = ref('');
 
 // Errores
-const identifierError = ref('');
+const emailError = ref('');
 const passwordError = ref('');
 const errorGeneral = ref('');
-
-// Rol detectado desde localStorage
-const rolDetectado = ref(null);
-
-// Etiquetas y placeholders dinámicos
-const campoLabel = computed(() => {
-  return rolDetectado.value === 'admin'
-    ? 'Correo electrónico'
-    : rolDetectado.value === 'usuario'
-    ? 'Número de documento'
-    : 'Correo o documento';
-});
-
-const campoPlaceholder = computed(() => {
-  return rolDetectado.value === 'admin'
-    ? 'tu@correo.com'
-    : rolDetectado.value === 'usuario'
-    ? '12345678'
-    : 'Ingresa tu correo o documento';
-});
 
 // Variables del Dialogo
 const mostrarDialogo = ref(false)
@@ -218,33 +96,17 @@ const mostraDialogoAlerta = (titulo, mensaje, tipo) => {
 
 const onDialogoClose = () => {
     if (dialogoTipo.value === 'success') {
-        // Redirigimos según el rol
-        if (registroStore.usuario.rol === 'admin'){
-          router.push('/dashboard');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
     }
 };
 
-// Leer rol desde localStorage al cargar
-onMounted(() => {
-  const ultimo = localStorage.getItem('ultimoUsuario');
-  if (ultimo) {
-    rolDetectado.value = ultimo;
-  }
-});
-
-
-// Validar identificador
-const validarIdentificador = () => {
-  identifierError.value = '';
-  if (!identifier.value) {
-    identifierError.value = 'Este campo es obligatorio';
-  } else if (rolDetectado.value === 'admin' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier.value)) {
-    identifierError.value = 'Correo inválido';
-  } else if (rolDetectado.value === 'usuario' && identifier.value.length < 8) {
-    identifierError.value = 'Documento debe tener al menos 8 dígitos';
+// Validar email
+const validarEmail = () => {
+  emailError.value = '';
+  if (!email.value) {
+    emailError.value = 'Este campo es obligatorio';
+  } else if (!/^\S+@\S+\.\S+$/.test(email.value)) {
+    emailError.value = 'Correo inválido';
   }
 };
 
@@ -260,11 +122,11 @@ const validarPassword = () => {
 };
 
 // Iniciar sesión
-const iniciarSesion = () => {
-    validarIdentificador();
+const iniciarSesion = async () => {
+    validarEmail();
     validarPassword();
 
-    if (identifierError.value || passwordError.value) {
+    if (emailError.value || passwordError.value) {
       mostraDialogoAlerta(
         'Campos incompletos',
         'Por favor, completa los campos correctamente',
@@ -273,25 +135,19 @@ const iniciarSesion = () => {
       return;
     }
 
-    const credenciales = {
-        password: password.value
-    };
-
-    if (rolDetectado.value === 'admin') {
-        credenciales.correo = identifier.value;
-    } else {
-        credenciales.documento = identifier.value;
-    }
-
-    if (registroStore.login(credenciales)) {
-      // Redirigir directamente al dashboard
-      router.push('/dashboard');
-    } else {
-      mostraDialogoAlerta(
-        'Credenciales incorrectas',
-        'Verificar tu correo/documento y contraseña',
-        'error'
-      )
+    try {
+        await authStore.login(email.value, password.value);
+        mostraDialogoAlerta(
+            'Inicio de sesión exitoso',
+            'Bienvenido de nuevo',
+            'success'
+        );
+    } catch (error) {
+        mostraDialogoAlerta(
+            'Credenciales incorrectas',
+            'Verificar tu correo y contraseña',
+            'error'
+        );
     }
 };
 
